@@ -3,7 +3,7 @@ uvicorn[standard]==0.24.0
 
 python-dotenv==1.0.0
 motor==3.3.2
-pymongo==4.6.0
+pymongo==4.6.3
 
 pydantic==2.5.0
 pydantic-settings==2.1.0
@@ -14,11 +14,11 @@ eth-account==0.11.0
 eth-utils==2.3.1
 web3==6.15.1
 
-python-multipart==0.0.6
+python-multipart==0.0.22
 
 groq==0.4.2
 
 apscheduler==3.10.4
 
 redis==5.0.1
-requests==2.31.0
+requests==2.32.4
