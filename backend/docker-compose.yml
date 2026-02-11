@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: molttip_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: molttip_economy
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - molttip_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: molttip_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - molttip_network
+
+  api:
+    build: .
+    container_name: molttip_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://admin:password@mongodb:27017/molttip_economy?authSource=admin
+      - DATABASE_NAME=molttip_economy
+      - DEBUG=True
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - ./logs:/app/logs
+      - ./app:/app/app
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - molttip_network
+    command: >
+      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  worker:
+    build: .
+    container_name: molttip_worker
+    restart: unless-stopped
+    environment:
+      - MONGODB_URL=mongodb://admin:password@mongodb:27017/molttip_economy?authSource=admin
+      - DATABASE_NAME=molttip_economy
+    volumes:
+      - ./logs:/app/logs
+      - ./app:/app/app
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - molttip_network
+    command: >
+      sh -c "python app/tasks/process_pending_tips.py"
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  molttip_network:
+    driver: bridge
