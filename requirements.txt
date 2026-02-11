@@ -1,38 +1,26 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
+fastapi
+uvicorn[standard]
 
-# Auth & Security
-python-multipart==0.0.6
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
 
-# Database
-motor==3.3.2
-pymongo==4.6.0
+motor
+pymongo
 
-# Config & Validation
-pydantic==2.5.0
-pydantic-settings==2.1.0
-python-dotenv==1.0.0
+pydantic
+pydantic-settings
+python-dotenv
 
-# Rate limiting & Cache
-slowapi==0.1.8
-redis==5.0.1
+slowapi
+redis
 
-# HTTP Client
-httpx==0.25.2
+httpx
 
-# Web3
-web3==6.11.4
-eth-account==0.11.0
-eth-utils==2.3.1
+web3
+eth-account
 
-# AI
-groq==0.3.0
+groq
 
-# Date & Time
-pytz==2023.3.post1
-python-dateutil==2.8.2
-
-# System monitoring (health endpoint uses psutil)
-psutil==5.9.8
+pytz
+python-dateutil
