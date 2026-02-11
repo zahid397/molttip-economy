@@ -18,3 +18,10 @@ groq==0.4.2
 apscheduler==3.10.4
 
 redis==5.0.1
+
+# Needed internally by web3 / eth-account sometimes
+eth-utils>=2.3.0
+eth-abi>=4.2.0
+
+# Production server (important for Render)
+gunicorn==21.2.0
