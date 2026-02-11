@@ -9,6 +9,8 @@ from app.core.database import connect_db, close_db
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.logging import LoggingMiddleware
 
+from app.tasks.update_leaderboard import start_scheduler, scheduler
+
 from app.api.routes import (
     auth,
     agent,
@@ -27,6 +29,7 @@ from app.api.routes import (
 async def lifespan(app: FastAPI):
     # Startup
     setup_logging()
+
     try:
         await connect_db()
         print("✅ Database connected successfully")
@@ -34,11 +37,18 @@ async def lifespan(app: FastAPI):
         print(f"❌ Database connection failed: {e}")
         raise e
 
+    # Start scheduler
+    start_scheduler()
+
     yield
 
     # Shutdown
     await close_db()
     print("🔌 Database connection closed")
+
+    if scheduler.running:
+        scheduler.shutdown()
+        print("🛑 Scheduler stopped")
 
 
 app = FastAPI(
