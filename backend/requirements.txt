@@ -11,7 +11,7 @@ PyJWT==2.8.0
 eth-account==0.11.0
 web3==6.15.1
 
-python-multipart==0.0.6
+python-multipart==0.0.22
 groq==0.4.2
 apscheduler==3.10.4
 redis==5.0.1
