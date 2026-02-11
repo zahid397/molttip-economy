@@ -1,27 +1,27 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
+fastapi
+uvicorn[standard]
 
-python-dotenv==1.0.0
-motor==3.3.2
+python-dotenv
+motor
 
-pydantic[email]==2.5.0
-pydantic-settings==2.1.0
+pydantic[email]
+pydantic-settings
 
-PyJWT==2.8.0
-eth-account==0.11.0
-web3==6.15.1
+PyJWT
+eth-account
+web3
 
-python-multipart==0.0.6
+python-multipart
 
-groq==0.4.2
+groq
 
-apscheduler==3.10.4
+apscheduler
 
-redis==5.0.1
+redis
 
 # Needed internally by web3 / eth-account sometimes
-eth-utils>=2.3.0
-eth-abi>=4.2.0
+eth-utils>
+eth-abi>
 
 # Production server (important for Render)
-gunicorn==21.2.0
+gunicorn
