@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+motor
+pydantic-settings
+PyJWT
+eth-account
+web3
+python-multipart
+groq
+apscheduler
+redis
