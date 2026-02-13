@@ -12,10 +12,10 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-// ✅ Security
+// Security headers
 app.use(helmet());
 
-// ✅ CORS FIX (Vercel + Localhost + Dynamic Env)
+// Allowed origins (dynamic + fallbacks)
 const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
@@ -26,17 +26,28 @@ if (process.env.FRONTEND_URL) {
   allowedOrigins.push(process.env.FRONTEND_URL);
 }
 
+// CORS configuration
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (Postman / curl)
+      // Allow requests with no origin (e.g., mobile apps, Postman)
       if (!origin) return callback(null, true);
 
+      // In development, allow all origins (easier testing)
+      if (process.env.NODE_ENV === "development") {
+        return callback(null, true);
+      }
+
+      // Check if origin is allowed
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS: " + origin));
+      // Log rejected origin for debugging
+      logger.warn(`CORS blocked origin: ${origin}`);
+
+      // Reject with false (standard CORS error) instead of an error object
+      return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -44,22 +55,20 @@ app.use(
   })
 );
 
-// ✅ Body parser
+// Body parser
 app.use(express.json({ limit: "1mb" }));
 
-// ✅ Logger
+// Logger
 app.use(
   morgan("combined", {
-    stream: {
-      write: (msg) => logger.info(msg.trim()),
-    },
+    stream: { write: (msg) => logger.info(msg.trim()) },
   })
 );
 
-// ✅ Rate limit only API routes
+// Rate limit only API routes
 app.use("/api", rateLimiter);
 
-// ✅ Routes
+// Routes
 app.use("/api/health", require("./routes/health.routes"));
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/agents", require("./routes/agent.routes"));
@@ -69,7 +78,7 @@ app.use("/api/tips", require("./routes/tip.routes"));
 app.use("/api/leaderboard", require("./routes/leaderboard.routes"));
 app.use("/api/notifications", require("./routes/notification.routes"));
 
-// ✅ Root Route (optional but good)
+// Root route
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -77,10 +86,10 @@ app.get("/", (req, res) => {
   });
 });
 
-// ✅ Not found handler
+// Not found handler
 app.use(notFound);
 
-// ✅ Error handler
+// Error handler
 app.use(errorHandler);
 
 module.exports = app;
