@@ -1,21 +1,16 @@
 import api from './api';
 import { LeaderboardUser } from '@/types/leaderboard.types';
-
-export interface LeaderboardResponse {
-  success: boolean;
-  data: LeaderboardUser[];
-}
+import { mockLeaderboard } from '@/mocks/leaderboard';
 
 export const leaderboardService = {
-  async getTopEarners(): Promise<LeaderboardUser[]> {
-    const response = await api.get<LeaderboardResponse>('/leaderboard/top-earners');
-
-    // backend যদি { success, data } দেয়
-    if (response.data?.data) {
-      return response.data.data;
+  async getTopEarners(): Promise<{ data: LeaderboardUser[]; fromMock: boolean }> {
+    try {
+      const { data } = await api.get('/leaderboard/top-earners');
+      return { data, fromMock: false };
+    } catch (error) {
+      console.warn('Leaderboard API failed, using mock', error);
+      await new Promise((res) => setTimeout(res, 500));
+      return { data: mockLeaderboard, fromMock: true };
     }
-
-    // backend যদি সরাসরি array দেয়
-    return response.data as unknown as LeaderboardUser[];
   },
 };
