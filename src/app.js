@@ -12,18 +12,42 @@ const app = express();
 
 app.set("trust proxy", 1);
 
+// ✅ Security
 app.use(helmet());
+
+// ✅ CORS FIX (Vercel + Localhost + Dynamic Env)
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://molttip-economy.vercel.app",
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 
 app.use(
   cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: function (origin, callback) {
+      // allow requests with no origin (Postman / curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS: " + origin));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+// ✅ Body parser
 app.use(express.json({ limit: "1mb" }));
 
+// ✅ Logger
 app.use(
   morgan("combined", {
     stream: {
@@ -32,18 +56,10 @@ app.use(
   })
 );
 
-// ROOT CHECK
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "🚀 MoltTip API Live",
-  });
-});
-
-// API rate limiter
+// ✅ Rate limit only API routes
 app.use("/api", rateLimiter);
 
-// ROUTES
+// ✅ Routes
 app.use("/api/health", require("./routes/health.routes"));
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/agents", require("./routes/agent.routes"));
@@ -53,8 +69,18 @@ app.use("/api/tips", require("./routes/tip.routes"));
 app.use("/api/leaderboard", require("./routes/leaderboard.routes"));
 app.use("/api/notifications", require("./routes/notification.routes"));
 
-// 404 + ERROR
+// ✅ Root Route (optional but good)
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "MoltTip API is running 🚀",
+  });
+});
+
+// ✅ Not found handler
 app.use(notFound);
+
+// ✅ Error handler
 app.use(errorHandler);
 
 module.exports = app;
