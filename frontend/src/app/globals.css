@@ -2,33 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================
+   BASE STYLES
+========================= */
 @layer base {
   body {
-    @apply bg-black text-white;
+    @apply bg-black text-white antialiased;
   }
+
+  /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
     @apply bg-black/20;
   }
+
   ::-webkit-scrollbar-thumb {
     @apply bg-neon-blue/30 rounded-full;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-neon-blue/50;
   }
 }
 
+/* =========================
+   COMPONENT UTILITIES
+========================= */
 @layer components {
   .glass-panel {
-    @apply bg-glass-dark backdrop-blur-md border border-glass-light rounded-2xl;
+    @apply bg-glass-dark backdrop-blur-md border border-glass-light rounded-2xl shadow-lg;
   }
+
   .neon-glow {
     @apply shadow-[0_0_15px_rgba(0,243,255,0.5)];
   }
+
   .hover-lift {
     @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+}
+
+/* =========================
+   CUSTOM ANIMATIONS
+========================= */
+@layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 0.18s ease-out forwards;
+  }
+
+  .animate-slideUp {
+    animation: slideUp 0.25s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0px);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0px);
+    }
   }
 }
