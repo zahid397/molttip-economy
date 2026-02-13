@@ -1,5 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,12 +10,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "neon-blue": "#00f3ff",
-        "neon-cyan": "#0ef0f0",
-        "neon-purple": "#b026ff",
-
-        "glass-dark": "rgba(10, 10, 20, 0.7)",
-        "glass-light": "rgba(255, 255, 255, 0.1)"
+        neon: {
+          blue: '#00f3ff',
+          cyan: '#0ef0f0',
+          purple: '#b026ff',
+        },
+        glass: {
+          dark: 'rgba(10, 10, 20, 0.7)',
+          light: 'rgba(255, 255, 255, 0.1)',
+        },
       },
       animation: {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -23,3 +27,5 @@ module.exports = {
   },
   plugins: [],
 };
+
+export default config;
