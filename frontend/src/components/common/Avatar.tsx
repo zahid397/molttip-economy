@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import defaultAvatar from '@/assets/default-avatar.png';
 
 interface AvatarProps {
   address?: string;
@@ -20,15 +19,14 @@ export const Avatar = ({ address, size = 'md', src }: AvatarProps) => {
   };
 
   const avatarUrl =
-    src ||
-    (address ? `https://effigy.im/a/${address}.svg` : undefined);
+    src || (address ? `https://effigy.im/a/${address}.svg` : '/avatar.png');
 
   return (
     <div
       className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-gray-800 ring-2 ring-glass-light shadow-md`}
     >
       <Image
-        src={imgError || !avatarUrl ? defaultAvatar : avatarUrl}
+        src={imgError ? '/avatar.png' : avatarUrl}
         alt="Avatar"
         fill
         sizes="64px"
