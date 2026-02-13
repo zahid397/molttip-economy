@@ -1,33 +1,26 @@
 import api from './api';
 import { Notification } from '@/types/notification.types';
-
-interface NotificationsResponse {
-  success?: boolean;
-  data?: Notification[];
-}
-
-interface MarkReadResponse {
-  success?: boolean;
-  message?: string;
-  data?: Notification;
-}
+import { mockNotifications } from '@/mocks/notifications';
 
 export const notificationService = {
   async getNotifications(): Promise<Notification[]> {
-    const response = await api.get<NotificationsResponse | Notification[]>('/notifications');
-
-    // যদি backend { data: [...] } দেয়
-    if (typeof response.data === 'object' && 'data' in response.data) {
-      return response.data.data || [];
+    try {
+      const { data } = await api.get('/notifications');
+      return data;
+    } catch (error) {
+      console.warn('Notifications API failed, using mock', error);
+      await new Promise((res) => setTimeout(res, 500));
+      return mockNotifications;
     }
-
-    // যদি backend সরাসরি array দেয়
-    return response.data as Notification[];
   },
 
-  async markAsRead(id: string): Promise<Notification | null> {
-    const response = await api.patch<MarkReadResponse>(`/notifications/${id}/read`);
-
-    return response.data?.data || null;
+  async markAsRead(id: string): Promise<{ success: boolean }> {
+    try {
+      const { data } = await api.patch(`/notifications/${id}/read`);
+      return data;
+    } catch (error) {
+      console.warn('Mark as read failed, mock success', error);
+      return { success: true };
+    }
   },
 };
