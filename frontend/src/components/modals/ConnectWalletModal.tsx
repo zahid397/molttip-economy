@@ -11,11 +11,15 @@ interface ConnectWalletModalProps {
 }
 
 export const ConnectWalletModal = ({ isOpen, onClose }: ConnectWalletModalProps) => {
-  const { connectWallet, loading } = useWallet();
+  const { connectWallet, loading, hasMetaMask } = useWallet();
 
   const handleConnect = async () => {
     await connectWallet();
     onClose();
+  };
+
+  const handleInstall = () => {
+    window.open('https://metamask.io/download/', '_blank');
   };
 
   return (
@@ -35,7 +39,14 @@ export const ConnectWalletModal = ({ isOpen, onClose }: ConnectWalletModalProps)
             <p className="text-gray-300">
               Connect your wallet to start tipping and earning rewards.
             </p>
-            <div className="flex flex-col gap-3">
+            {!hasMetaMask ? (
+              <div className="text-center">
+                <p className="text-red-400 mb-3">MetaMask is not installed.</p>
+                <Button onClick={handleInstall} variant="primary" className="w-full">
+                  Install MetaMask
+                </Button>
+              </div>
+            ) : (
               <Button
                 onClick={handleConnect}
                 variant="primary"
@@ -44,10 +55,10 @@ export const ConnectWalletModal = ({ isOpen, onClose }: ConnectWalletModalProps)
               >
                 MetaMask
               </Button>
-              <p className="text-xs text-center text-gray-500">
-                We currently support only MetaMask.
-              </p>
-            </div>
+            )}
+            <p className="text-xs text-center text-gray-500">
+              We currently support only MetaMask.
+            </p>
           </div>
         </Dialog.Panel>
       </div>
