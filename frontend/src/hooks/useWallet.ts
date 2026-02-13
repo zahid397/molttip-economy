@@ -14,150 +14,85 @@ export const useWallet = () => {
   const [balance, setBalance] = useState<string>('0');
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasMetaMask, setHasMetaMask] = useState(false);
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
+  const { login } = useAuth();
 
-  const { login, logout } = useAuth();
-
-  const getProvider = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    if (!window.ethereum) return null;
-
-    return new ethers.BrowserProvider(window.ethereum);
+  useEffect(() => {
+    // Check if MetaMask is installed
+    if (typeof window !== 'undefined' && window.ethereum) {
+      setHasMetaMask(true);
+      const ethProvider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(ethProvider);
+    } else {
+      setHasMetaMask(false);
+    }
   }, []);
 
-  const refreshBalance = useCallback(
-    async (walletAddress: string) => {
-      try {
-        const provider = getProvider();
-        if (!provider) return;
-
-        const balanceWei = await provider.getBalance(walletAddress);
-        setBalance(ethers.formatEther(balanceWei));
-      } catch (err) {
-        console.error('Failed to refresh balance:', err);
-      }
-    },
-    [getProvider]
-  );
-
   const connectWallet = useCallback(async () => {
-    if (!window.ethereum) {
-      toast.error('MetaMask not installed!');
+    if (!hasMetaMask) {
+      toast.error('MetaMask not installed. Please install it.');
+      window.open('https://metamask.io/download/', '_blank');
       return;
     }
-
     setLoading(true);
-
     try {
-      const provider = getProvider();
-      if (!provider) throw new Error('Provider not found');
-
-      const accounts = await provider.send('eth_requestAccounts', []);
-      const userAddress = accounts?.[0];
-
-      if (!userAddress) {
-        toast.error('No wallet account found');
-        return;
-      }
-
+      const accounts = await provider!.send('eth_requestAccounts', []);
+      const userAddress = accounts[0];
       setAddress(userAddress);
       setIsConnected(true);
-
-      await refreshBalance(userAddress);
-
-      // 🔥 login flow (nonce + signature + JWT)
+      
+      const balanceWei = await provider!.getBalance(userAddress);
+      setBalance(ethers.formatEther(balanceWei));
+      
       await login(userAddress);
-
-      toast.success('Wallet connected successfully ⚡');
+      toast.success('Wallet connected');
     } catch (error) {
-      console.error('Wallet connect error:', error);
+      console.error('Connection error:', error);
       toast.error('Failed to connect wallet');
     } finally {
       setLoading(false);
     }
-  }, [getProvider, login, refreshBalance]);
+  }, [hasMetaMask, provider, login]);
 
   const disconnectWallet = useCallback(() => {
     setAddress(null);
     setBalance('0');
     setIsConnected(false);
-
-    logout();
-
+    localStorage.removeItem('jwt');
     toast.success('Wallet disconnected');
-  }, [logout]);
+  }, []);
 
-  // Auto check if already connected
   useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        if (!window.ethereum) return;
-
-        const provider = getProvider();
-        if (!provider) return;
-
+    if (hasMetaMask && provider) {
+      const checkConnection = async () => {
         const accounts = await provider.listAccounts();
-
         if (accounts.length > 0) {
           const userAddress = accounts[0].address;
-
           setAddress(userAddress);
           setIsConnected(true);
-
-          await refreshBalance(userAddress);
-
-          // 🔥 Auto login if JWT missing
-          await login(userAddress);
+          const balanceWei = await provider.getBalance(userAddress);
+          setBalance(ethers.formatEther(balanceWei));
         }
-      } catch (error) {
-        console.error('Auto connection failed:', error);
-      }
-    };
+      };
+      checkConnection();
 
-    checkConnection();
-  }, [getProvider, refreshBalance, login]);
-
-  // MetaMask listeners
-  useEffect(() => {
-    if (!window.ethereum) return;
-
-    const handleAccountsChanged = async (accounts: string[]) => {
-      if (!accounts || accounts.length === 0) {
-        disconnectWallet();
-        return;
-      }
-
-      const newAddress = accounts[0];
-      setAddress(newAddress);
-      setIsConnected(true);
-
-      await refreshBalance(newAddress);
-      await login(newAddress);
-
-      toast.success('Account switched 🔄');
-    };
-
-    const handleChainChanged = () => {
-      toast('Network changed 🌐 Refreshing...', { icon: '⚡' });
-      window.location.reload();
-    };
-
-    window.ethereum.on('accountsChanged', handleAccountsChanged);
-    window.ethereum.on('chainChanged', handleChainChanged);
-
+      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+        if (accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          setAddress(accounts[0]);
+        }
+      });
+      window.ethereum.on('chainChanged', () => window.location.reload());
+    }
     return () => {
-      if (!window.ethereum?.removeListener) return;
-
-      window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-      window.ethereum.removeListener('chainChanged', handleChainChanged);
+      if (window.ethereum) {
+        window.ethereum.removeAllListeners('accountsChanged');
+        window.ethereum.removeAllListeners('chainChanged');
+      }
     };
-  }, [disconnectWallet, refreshBalance, login]);
+  }, [hasMetaMask, provider, disconnectWallet]);
 
-  return {
-    address,
-    balance,
-    isConnected,
-    loading,
-    connectWallet,
-    disconnectWallet,
-  };
+  return { address, balance, isConnected, loading, hasMetaMask, connectWallet, disconnectWallet };
 };
