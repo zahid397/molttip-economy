@@ -1,6 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
-import { authService } from '@/services/auth.service';
+'use client';
+
+import { useState, useCallback } from 'react';
 import { ethers } from 'ethers';
+import { authService } from '@/services/auth.service';
+import { storage } from '@/utils/storage';
 import toast from 'react-hot-toast';
 
 declare global {
@@ -17,57 +20,51 @@ export const useAuth = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 Auto restore session from JWT
-  useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    const storedAddress = localStorage.getItem('walletAddress');
-
-    if (token && storedAddress) {
-      setUser({ address: storedAddress });
-    }
-  }, []);
-
   const login = useCallback(async (address: string) => {
     setLoading(true);
 
     try {
-      if (!window.ethereum) throw new Error('MetaMask not found');
+      if (!window.ethereum) {
+        throw new Error('MetaMask not installed');
+      }
 
-      // 1️⃣ Get nonce
+      // 1️⃣ Get nonce message from backend
       const nonceResponse = await authService.getNonce(address);
 
-      const message =
-        nonceResponse.message ||
-        nonceResponse.nonce ||
-        `Sign this message to authenticate. Nonce: ${nonceResponse}`;
+      if (!nonceResponse?.message) {
+        throw new Error('Invalid nonce response from server');
+      }
 
-      // 2️⃣ Sign message
+      const message: string = nonceResponse.message;
+
+      // 2️⃣ Create provider & signer
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
+
+      // 3️⃣ Sign message
       const signature = await signer.signMessage(message);
 
-      // 3️⃣ Verify
+      // 4️⃣ Verify signature with backend
       const verifyResponse = await authService.verifySignature(
         address,
         signature
       );
 
-      const token = verifyResponse.token;
+      if (!verifyResponse?.token) {
+        throw new Error('Invalid verification response');
+      }
 
-      if (!token) throw new Error('Token not received');
-
-      // 4️⃣ Store JWT
-      localStorage.setItem('jwt', token);
-      localStorage.setItem('walletAddress', address);
+      // 5️⃣ Store JWT securely
+      storage.setToken(verifyResponse.token);
 
       setUser({ address });
 
-      toast.success('Authentication successful 🔐');
+      toast.success('Authentication successful 🚀');
 
       return verifyResponse;
-    } catch (error) {
-      console.error('Auth error:', error);
-      toast.error('Authentication failed');
+    } catch (error: any) {
+      console.error('Authentication error:', error);
+      toast.error(error?.message || 'Authentication failed');
       throw error;
     } finally {
       setLoading(false);
@@ -75,10 +72,15 @@ export const useAuth = () => {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('jwt');
-    localStorage.removeItem('walletAddress');
+    storage.clearToken();
     setUser(null);
+    toast.success('Logged out');
   }, []);
 
-  return { user, loading, login, logout };
+  return {
+    user,
+    loading,
+    login,
+    logout,
+  };
 };
