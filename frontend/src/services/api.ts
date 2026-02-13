@@ -20,7 +20,8 @@ api.interceptors.request.use(
   (config) => {
     const token = storage.getToken();
 
-    if (token && config.headers) {
+    if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -37,19 +38,22 @@ api.interceptors.response.use(
   (error: AxiosError<any>) => {
     const status = error.response?.status;
 
+    // ✅ Network error (server down / timeout / cors) -> silent reject
+    if (!error.response) {
+      return Promise.reject(new Error('NETWORK_ERROR'));
+    }
+
     // Handle unauthorized globally
     if (status === 401) {
       storage.clearToken();
 
-      // Avoid SSR crash
       if (typeof window !== 'undefined') {
         window.location.href = '/';
       }
     }
 
-    // Normalize error message
     const message =
-      (error.response?.data as any)?.message ||
+      error.response?.data?.message ||
       error.message ||
       'Something went wrong';
 
