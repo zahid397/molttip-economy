@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+
 const rateLimiter = require('./middleware/rateLimit');
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
@@ -12,33 +13,47 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// Security
+/* =========================
+   SECURITY MIDDLEWARE
+========================= */
 app.use(helmet());
 
-// CORS
+/* =========================
+   CORS CONFIG
+========================= */
 app.use(
   cors({
-    origin: frontendUrl,
+    origin: frontendUrl || '*',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
-// Body parser
+/* =========================
+   BODY PARSER
+========================= */
 app.use(express.json({ limit: '1mb' }));
 
-// Logger
+/* =========================
+   LOGGER
+========================= */
 app.use(
   morgan('combined', {
-    stream: { write: (msg) => logger.info(msg.trim()) },
+    stream: {
+      write: (msg) => logger.info(msg.trim()),
+    },
   })
 );
 
-// Rate limit only API routes
+/* =========================
+   RATE LIMIT
+========================= */
 app.use('/api', rateLimiter);
 
-// Routes
+/* =========================
+   API ROUTES
+========================= */
 app.use('/api/health', require('./routes/health.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/posts', require('./routes/post.routes'));
@@ -48,18 +63,30 @@ app.use('/api/leaderboard', require('./routes/leaderboard.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/ai', require('./routes/ai.routes'));
 
-// Root route
+/* =========================
+   ROOT ROUTE
+========================= */
 app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'MoltTip API is running 🚀',
+    message: '🚀 MoltTip API is running (In-Memory Mode)',
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Not found handler
+/* =========================
+   FAVICON FIX
+========================= */
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+/* =========================
+   NOT FOUND
+========================= */
 app.use(notFound);
 
-// Error handler
+/* =========================
+   GLOBAL ERROR HANDLER
+========================= */
 app.use(errorHandler);
 
 module.exports = app;
