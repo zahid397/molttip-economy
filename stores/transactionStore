@@ -1,0 +1,24 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { TransactionState } from '@/types'
+
+export const useTransactionStore = create<TransactionState>()(
+  persist(
+    (set, get) => ({
+      transactions: [],
+
+      addTransaction: (tx) =>
+        set((state) => ({
+          transactions: [tx, ...state.transactions],
+        })),
+
+      getTransactionsByAddress: (address: string) =>
+        get().transactions.filter(
+          (tx) => tx.from === address || tx.to === address
+        ),
+    }),
+    {
+      name: 'transaction-storage',
+    }
+  )
+)
