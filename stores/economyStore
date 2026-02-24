@@ -1,0 +1,57 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { EconomyState } from '@/types'
+
+export const useEconomyStore = create<EconomyState>()(
+  persist(
+    (set, get) => ({
+      balances: {},
+      motipPrice: 1.25,
+
+      getBalance: (address) =>
+        get().balances[address] ?? { MOTIP: 0, USD: 0 },
+
+      setBalance: (address, balance) =>
+        set((state) => ({
+          balances: {
+            ...state.balances,
+            [address]: balance,
+          },
+        })),
+
+      transfer: (from, to, amount, token) => {
+        if (amount <= 0) return false
+
+        const state = get()
+        const fromBalance = state.getBalance(from)
+        const toBalance = state.getBalance(to)
+
+        if (fromBalance[token] < amount) return false
+
+        set({
+          balances: {
+            ...state.balances,
+            [from]: {
+              ...fromBalance,
+              [token]: fromBalance[token] - amount,
+            },
+            [to]: {
+              ...toBalance,
+              [token]: toBalance[token] + amount,
+            },
+          },
+        })
+
+        return true
+      },
+
+      updatePrice: () => {
+        const change = (Math.random() - 0.5) * 0.1
+        set((state) => ({
+          motipPrice: Math.max(0.1, state.motipPrice + change),
+        }))
+      },
+    }),
+    { name: 'economy-storage' }
+  )
+)
