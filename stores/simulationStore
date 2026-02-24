@@ -1,0 +1,40 @@
+import { create } from 'zustand'
+
+export const useSimulationStore = create<SimulationState>((set, get) => ({
+  isRunning: false,
+  speed: 1,
+  intervalId: null,
+
+  toggle: () => {
+    const { isRunning, intervalId } = get()
+
+    if (isRunning && intervalId) {
+      clearInterval(intervalId)
+      set({ isRunning: false, intervalId: null })
+    } else {
+      const id: ReturnType<typeof setInterval> = setInterval(() => {
+        // simulation tick will be injected from engine
+      }, 1000 / get().speed)
+
+      set({ isRunning: true, intervalId: id })
+    }
+  },
+
+  setSpeed: (speed: number) => {
+    const { intervalId, isRunning } = get()
+
+    if (intervalId) {
+      clearInterval(intervalId)
+    }
+
+    if (isRunning) {
+      const id: ReturnType<typeof setInterval> = setInterval(() => {
+        // simulation tick
+      }, 1000 / speed)
+
+      set({ speed, intervalId: id })
+    } else {
+      set({ speed })
+    }
+  },
+}))
