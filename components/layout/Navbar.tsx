@@ -7,12 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Menu } from 'lucide-react'
 
 export function Navbar() {
-  const address = useWalletStore((s) => s.address)
-  const connect = useWalletStore((s) => s.connect)
-  const disconnect = useWalletStore((s) => s.disconnect)
-
-  const shortAddress =
-    address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ''
+  const { address, connect, disconnect } = useWalletStore()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -22,29 +17,18 @@ export function Navbar() {
             <span className="font-bold text-primary">MOTIP</span>
           </Link>
         </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          aria-label="Toggle menu"
-        >
+        <Button variant="ghost" size="icon" className="md:hidden">
           <Menu className="h-5 w-5" />
         </Button>
-
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           {address ? (
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                {shortAddress}
+                {address.slice(0, 6)}...{address.slice(-4)}
               </span>
-
               <Avatar>
-                <AvatarFallback>
-                  {address.slice(2, 4).toUpperCase()}
-                </AvatarFallback>
+                <AvatarFallback>👤</AvatarFallback>
               </Avatar>
-
               <Button variant="outline" size="sm" onClick={disconnect}>
                 Disconnect
               </Button>
