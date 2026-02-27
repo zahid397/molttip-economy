@@ -1,9 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowRight, Activity, TrendingUp,
-  Zap, RefreshCw,
-} from 'lucide-react';
+import { ArrowRight, Activity, TrendingUp, Zap, RefreshCw } from 'lucide-react';
 import { MotiPStats }          from '@/components/economy/MotiPStats';
 import { TokenBalance }        from '@/components/economy/TokenBalance';
 import { AgentCard }           from '@/components/economy/AgentCard';
@@ -18,18 +15,13 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const { agents, fetchAgents, isLoading } = useWalletStore();
-  const { stats, updateStats }             = useEconomyStore();
+  const { updateStats }                    = useEconomyStore();
   const { transactions }                   = useTransactionStore();
 
   useSimulation(false);
 
-  useEffect(() => {
-    fetchAgents();
-  }, [fetchAgents]);
-
-  useEffect(() => {
-    if (agents.length) updateStats();
-  }, [agents, updateStats]);
+  useEffect(() => { fetchAgents(); }, [fetchAgents]);
+  useEffect(() => { if (agents.length) updateStats(); }, [agents, updateStats]);
 
   const topAgents    = [...agents].sort((a, b) => b.balance - a.balance).slice(0, 3);
   const primaryAgent = agents[0] ?? null;
@@ -39,17 +31,13 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 page-enter">
 
-      {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display font-bold text-3xl text-primary">
-            Dashboard
-          </h1>
+          <h1 className="font-display font-bold text-3xl text-primary">Dashboard</h1>
           <p className="text-sm text-text-secondary mt-1 font-mono">
             MotiP Economy — AI Agent Token Network
           </p>
         </div>
-
         <div className="flex items-center gap-3">
           <button
             onClick={() => fetchAgents()}
@@ -63,13 +51,10 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Economy stats ── */}
       <MotiPStats />
 
-      {/* ── Main grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* ── Left: Wallet + Recent Transactions ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold text-lg text-primary flex items-center gap-2">
@@ -77,9 +62,7 @@ export const Dashboard: React.FC = () => {
               Primary Wallet
             </h2>
             {primaryAgent && (
-              <span className="badge badge-cyan text-2xs">
-                {primaryAgent.name}
-              </span>
+              <span className="badge badge-cyan text-2xs">{primaryAgent.name}</span>
             )}
           </div>
 
@@ -99,7 +82,6 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Recent transactions */}
           <div className="card">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-display font-bold text-sm text-primary flex items-center gap-2">
@@ -120,13 +102,13 @@ export const Dashboard: React.FC = () => {
                 {recentTxs.map(tx => {
                   const from = agents.find(a => a.id === tx.fromAgentId);
                   const to   = agents.find(a => a.id === tx.toAgentId);
+                  const statusClass =
+                    tx.status === 'confirmed' ? 'badge-green'  :
+                    tx.status === 'pending'   ? 'badge-yellow' : 'badge-red';
                   return (
-                    <div
-                      key={tx.id}
-                      className="flex items-center justify-between
-                        px-3 py-2 rounded-md bg-bg-elevated border border-default
-                        text-xs font-mono"
-                    >
+                    <div key={tx.id}
+                      className="flex items-center justify-between px-3 py-2
+                        rounded-md bg-bg-elevated border border-default text-xs font-mono">
                       <div className="flex items-center gap-2 text-text-secondary min-w-0">
                         <span className="text-primary truncate max-w-[80px]">
                           {from?.name ?? tx.fromAgentId}
@@ -140,12 +122,7 @@ export const Dashboard: React.FC = () => {
                         <span className="text-accent-cyan font-bold">
                           {formatNumber(tx.amount)}
                         </span>
-                        <span className={[
-                          'badge text-2xs',
-                          tx.status === 'confirmed' ? 'badge-green'  :
-                          tx.status === 'pending'   ? 'badge-yellow' :
-                                                      'badge-red',
-                        ].join(' ')}>
+                        <span className={`badge text-2xs ${statusClass}`}>
                           {tx.status}
                         </span>
                       </div>
@@ -164,23 +141,18 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Right: Top Agents ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold text-lg text-primary flex items-center gap-2">
               <TrendingUp size={15} className="text-accent-green" />
               Top Agents
             </h2>
-            <span className="font-mono text-2xs text-text-muted">
-              by balance
-            </span>
+            <span className="font-mono text-2xs text-text-muted">by balance</span>
           </div>
 
           {isLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="skeleton h-28 rounded-lg" />
-              ))}
+              {[1, 2, 3].map(i => <div key={i} className="skeleton h-28 rounded-lg" />)}
             </div>
           ) : topAgents.length === 0 ? (
             <div className="card text-center py-8 text-text-muted font-mono text-sm">
