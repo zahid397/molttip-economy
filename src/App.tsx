@@ -45,16 +45,39 @@ function App() {
     <Router>
       <div className="min-h-screen bg-bg-base text-text-primary">
 
+        {/* Cosmetic layers — purely visual, no layout impact */}
         <div className="scanline-overlay" aria-hidden="true" />
         <ParticleLayer />
 
+        {/* ── Fixed chrome stack ────────────────────────────
+            DemoBanner : top-0,   h-8  (32px),  z-50
+            Navbar     : top-8,   h-14 (56px),  z-40
+            LiveTicker : top-22,  h-8  (32px),  z-30
+            Total offset = 32 + 56 + 32 = 120px
+        ─────────────────────────────────────────────────── */}
         <DemoBanner />
         <Navbar />
-        <LiveTicker />
 
+        {/* LiveTicker sits right below Navbar */}
+        <div className="fixed left-0 right-0 z-30" style={{ top: '88px' }}>
+          <LiveTicker />
+        </div>
+
+        {/* ── Body ── */}
         <div className="flex">
+
+          {/* Sidebar — fixed, starts below entire chrome */}
           <Sidebar />
-          <main className="flex-1 md:ml-56 min-h-[calc(100vh-56px)]">
+
+          {/*
+            pt accounts for:
+              DemoBanner 32px + Navbar 56px + LiveTicker 32px = 120px
+            md:ml-56 = sidebar width
+          */}
+          <main
+            className="flex-1 md:ml-56 min-h-screen"
+            style={{ paddingTop: '120px' }}
+          >
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
               <Routes>
                 <Route path="/"            element={<Dashboard />}   />
