@@ -1,36 +1,136 @@
 <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="pearlGradient" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="40%" stop-color="#e0f2fe" />
-      <stop offset="70%" stop-color="#38bdf8" />
-      <stop offset="100%" stop-color="#0ea5e9" />
+
+    <!-- Pearl core gradient -->
+    <radialGradient id="pearlGradient" cx="42%" cy="35%" r="65%">
+      <stop offset="0%"   stop-color="#ffffff"  />
+      <stop offset="30%"  stop-color="#a5f3fc"  />
+      <stop offset="65%"  stop-color="#00d4ff"  />
+      <stop offset="100%" stop-color="#0369a1"  />
     </radialGradient>
 
-    <radialGradient id="shine" cx="30%" cy="25%" r="30%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    <!-- Primary shine -->
+    <radialGradient id="shine" cx="32%" cy="26%" r="35%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="60%"  stop-color="#ffffff" stop-opacity="0.2"  />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"    />
     </radialGradient>
 
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+    <!-- Secondary deep shine (bottom-right) -->
+    <radialGradient id="shineDeep" cx="72%" cy="75%" r="28%">
+      <stop offset="0%"   stop-color="#7dd3fc" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#7dd3fc" stop-opacity="0"   />
+    </radialGradient>
+
+    <!-- Outer glow blur -->
+    <filter id="outerGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
       <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
+
+    <!-- Ring glow -->
+    <filter id="ringGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Soft drop shadow -->
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10"
+        flood-color="#0369a1" flood-opacity="0.5" />
+    </filter>
+
+    <!-- Hexagon clip -->
+    <clipPath id="hexClip">
+      <polygon points="100,18 172,58 172,138 100,178 28,138 28,58" />
+    </clipPath>
+
   </defs>
 
-  <!-- Outer Glow -->
-  <circle cx="100" cy="100" r="75" fill="#0ea5e9" opacity="0.2" filter="url(#glow)" />
+  <!-- ── Hex outer glow ring ── -->
+  <polygon
+    points="100,14 176,56 176,144 100,186 24,144 24,56"
+    fill="none"
+    stroke="#00d4ff"
+    stroke-width="1.5"
+    stroke-opacity="0.25"
+    filter="url(#ringGlow)"
+  />
 
-  <!-- Main Pearl -->
-  <circle cx="100" cy="100" r="65" fill="url(#pearlGradient)" />
+  <!-- ── Hex mid ring ── -->
+  <polygon
+    points="100,22 170,62 170,138 100,178 30,138 30,62"
+    fill="none"
+    stroke="#00d4ff"
+    stroke-width="1"
+    stroke-opacity="0.12"
+  />
 
-  <!-- Shine highlight -->
-  <circle cx="75" cy="70" r="35" fill="url(#shine)" />
+  <!-- ── Ambient glow behind pearl ── -->
+  <circle cx="100" cy="100" r="72"
+    fill="#00d4ff" opacity="0.12"
+    filter="url(#outerGlow)"
+  />
 
-  <!-- Inner subtle ring -->
-  <circle cx="100" cy="100" r="50" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2"/>
+  <!-- ── Main pearl sphere ── -->
+  <circle cx="100" cy="100" r="62"
+    fill="url(#pearlGradient)"
+    filter="url(#shadow)"
+  />
+
+  <!-- ── Primary shine highlight ── -->
+  <circle cx="78" cy="72" r="38"
+    fill="url(#shine)"
+  />
+
+  <!-- ── Secondary deep reflection ── -->
+  <circle cx="122" cy="128" r="26"
+    fill="url(#shineDeep)"
+  />
+
+  <!-- ── Inner rim (iridescence) ── -->
+  <circle cx="100" cy="100" r="52"
+    fill="none"
+    stroke="#ffffff"
+    stroke-opacity="0.18"
+    stroke-width="1.5"
+  />
+
+  <!-- ── Outer pearl rim ── -->
+  <circle cx="100" cy="100" r="62"
+    fill="none"
+    stroke="#ffffff"
+    stroke-opacity="0.10"
+    stroke-width="1"
+  />
+
+  <!-- ── Letter M ── -->
+  <text
+    x="100" y="115"
+    text-anchor="middle"
+    font-family="'Syne', 'Segoe UI', sans-serif"
+    font-size="54"
+    font-weight="800"
+    fill="#ffffff"
+    fill-opacity="0.95"
+    filter="url(#ringGlow)"
+    letter-spacing="-2"
+  >M</text>
+
+  <!-- ── Hex accent tick marks ── -->
+  <g stroke="#00d4ff" stroke-width="1.5" stroke-opacity="0.5">
+    <line x1="100" y1="14"  x2="100" y2="24"  />  <!-- top    -->
+    <line x1="100" y1="176" x2="100" y2="186" />  <!-- bottom -->
+    <line x1="24"  y1="56"  x2="32"  y2="61"  />  <!-- tl     -->
+    <line x1="176" y1="56"  x2="168" y2="61"  />  <!-- tr     -->
+    <line x1="24"  y1="144" x2="32"  y2="139" />  <!-- bl     -->
+    <line x1="176" y1="144" x2="168" y2="139" />  <!-- br     -->
+  </g>
 
 </svg>
