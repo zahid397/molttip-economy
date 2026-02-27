@@ -1,33 +1,27 @@
-import { Transaction } from '@/types';
+import { Transaction, TransactionType } from '@/types';
 import { randomBetween } from '@/lib/utils';
 
-const TX_TYPES: Transaction['type'][] = ['payment', 'trade'];
+const AGENT_IDS: string[]         = ['agent_alpha', 'agent_beta', 'agent_gamma', 'agent_delta'];
+const TX_TYPES:  TransactionType[] = ['payment', 'trade', 'reward'];
 
-function generateTxHash() {
-  return `0x${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
-}
+function makeTx(i: number): Transaction {
+  const fromIdx = i % AGENT_IDS.length;
+  const toIdx   = (i + 1) % AGENT_IDS.length;
+  const type    = TX_TYPES[i % TX_TYPES.length] as TransactionType;
+  const from    = AGENT_IDS[fromIdx] as string;
+  const to      = AGENT_IDS[toIdx]   as string;
 
-function createTransaction(
-  fromAgentId: string,
-  toAgentId: string,
-  amount: number,
-  overrides?: Partial<Transaction>
-): Transaction {
   return {
-    id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    txHash: generateTxHash(),
-    fromAgentId,
-    toAgentId,
-    amount,
-    timestamp: Date.now() - randomBetween(1, 24) * 60 * 60 * 1000,
-    type: TX_TYPES[Math.floor(Math.random() * TX_TYPES.length)],
-    status: 'confirmed',
-    ...overrides,
+    id:          `tx_mock_${i}`,
+    fromAgentId: from,
+    toAgentId:   to,
+    amount:      randomBetween(100, 3000),
+    type,
+    status:      'confirmed',
+    timestamp:   Date.now() - i * 60_000,
+    confirmedAt: Date.now() - i * 60_000 + 300,
   };
 }
 
-export const mockTransactions: Transaction[] = [
-  createTransaction('agent_alpha', 'agent_beta', 50, { type: 'payment' }),
-  createTransaction('agent_beta', 'agent_gamma', 30, { type: 'trade' }),
-  createTransaction('agent_gamma', 'agent_delta', 20, { type: 'payment' }),
-];
+export const mockTransactions: Transaction[] =
+  Array.from({ length: 12 }, (_, i) => makeTx(i));
