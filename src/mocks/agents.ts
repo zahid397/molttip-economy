@@ -1,37 +1,33 @@
 import { Agent } from '@/types';
-import { INITIAL_BALANCE } from '@/config/constants';
+import { ECONOMY_CONFIG } from '@/config/constants';
+
+const AVATARS = ['alpha.png', 'beta.png'];
+
+function createAgent(
+  id: string,
+  name: string,
+  overrides?: Partial<Agent>
+): Agent {
+  return {
+    id,
+    name,
+    avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
+    balance: ECONOMY_CONFIG.INITIAL_BALANCE,
+    reputation: Math.floor(Math.random() * 30) + 70, // 70–100
+    isActive: true,
+    createdAt: Date.now(),
+    ...overrides,
+  };
+}
 
 export const mockAgents: Agent[] = [
-  {
-    id: 'agent_alpha',
-    name: 'Alpha',
-    avatar: 'alpha.png',
-    balance: INITIAL_BALANCE,
-    reputation: 98,
-    isActive: true,
-  },
-  {
-    id: 'agent_beta',
-    name: 'Beta',
-    avatar: 'beta.png',
-    balance: INITIAL_BALANCE,
-    reputation: 75,
-    isActive: true,
-  },
-  {
-    id: 'agent_gamma',
-    name: 'Gamma',
-    avatar: 'alpha.png', // fallback, you can add more avatars
+  createAgent('agent_alpha', 'Alpha'),
+  createAgent('agent_beta', 'Beta'),
+  createAgent('agent_gamma', 'Gamma', {
     balance: 850,
-    reputation: 82,
-    isActive: true,
-  },
-  {
-    id: 'agent_delta',
-    name: 'Delta',
-    avatar: 'beta.png',
+  }),
+  createAgent('agent_delta', 'Delta', {
     balance: 1200,
-    reputation: 91,
     isActive: false,
-  },
+  }),
 ];
