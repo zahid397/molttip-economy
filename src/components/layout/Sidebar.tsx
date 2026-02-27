@@ -2,34 +2,33 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Bot, ArrowLeftRight,
-  CreditCard, Trophy, Activity, Zap,
-  TrendingUp, CircleDot,
+  CreditCard, Trophy, Activity, Zap, TrendingUp, CircleDot,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatNumber } from '@/lib/utils';
 import { useSimulationStore } from '@/stores/simulationStore';
-import { useEconomyStore } from '@/stores/economyStore';
+import { useEconomyStore }    from '@/stores/economyStore';
 
 const NAV_ITEMS = [
-  { path: '/',            label: 'Dashboard',   icon: LayoutDashboard, badge: null          },
-  { path: '/agents',      label: 'Agents',      icon: Bot,             badge: 'agents'      },
-  { path: '/trade',       label: 'Trade',       icon: ArrowLeftRight,  badge: 'offers'      },
-  { path: '/payments',    label: 'Payments',    icon: CreditCard,      badge: null          },
-  { path: '/leaderboard', label: 'Leaderboard', icon: Trophy,          badge: null          },
+  { path: '/',            label: 'Dashboard',   icon: LayoutDashboard },
+  { path: '/agents',      label: 'Agents',      icon: Bot             },
+  { path: '/trade',       label: 'Trade',       icon: ArrowLeftRight  },
+  { path: '/payments',    label: 'Payments',    icon: CreditCard      },
+  { path: '/leaderboard', label: 'Leaderboard', icon: Trophy          },
 ] as const;
 
 const Sidebar: React.FC = () => {
   const location  = useLocation();
   const navigate  = useNavigate();
   const { isRunning, tickCount } = useSimulationStore();
-  const { stats }                = useEconomyStore();
+  const stats                    = useEconomyStore(s => s.stats);
 
   return (
-    <aside className="hidden md:flex flex-col fixed left-0 top-14 bottom-0 w-56
-      bg-bg-surface border-r border-default z-30 overflow-y-auto scrollbar-hide">
-
-      {/* ── Nav ── */}
+    <aside
+      className="hidden md:flex flex-col fixed left-0 bottom-0 w-56
+        bg-bg-surface border-r border-default z-30 overflow-y-auto scrollbar-hide"
+      style={{ top: '120px' }} /* DemoBanner(32) + Navbar(56) + Ticker(32) */
+    >
       <nav className="flex flex-col gap-1 p-3 flex-1">
-
         <p className="text-2xs font-mono text-text-muted uppercase tracking-widest
           px-3 mb-2 mt-1">
           Navigation
@@ -47,15 +46,11 @@ const Sidebar: React.FC = () => {
                 <Icon size={14} />
                 <span>{label}</span>
               </span>
-
-              {active && (
-                <CircleDot size={8} className="text-accent-cyan opacity-70" />
-              )}
+              {active && <CircleDot size={8} className="text-accent-cyan opacity-70" />}
             </button>
           );
         })}
 
-        {/* ── Divider ── */}
         <hr className="separator my-2" />
 
         <p className="text-2xs font-mono text-text-muted uppercase tracking-widest
@@ -63,7 +58,6 @@ const Sidebar: React.FC = () => {
           Economy
         </p>
 
-        {/* Volume stat */}
         <div className="card px-3 py-2.5 mx-1 mb-1">
           <div className="flex items-center justify-between mb-1">
             <span className="text-2xs text-text-secondary font-mono uppercase tracking-wider">
@@ -72,12 +66,11 @@ const Sidebar: React.FC = () => {
             <TrendingUp size={11} className="text-accent-green" />
           </div>
           <p className="font-mono text-sm font-bold text-accent-cyan">
-            {stats?.volumeLast24h?.toLocaleString() ?? '—'}
+            {stats ? formatNumber(stats.volumeLast24h) : '—'}
             <span className="text-2xs text-text-secondary font-normal ml-1">MOTIP</span>
           </p>
         </div>
 
-        {/* Active agents stat */}
         <div className="card px-3 py-2.5 mx-1">
           <div className="flex items-center justify-between mb-1">
             <span className="text-2xs text-text-secondary font-mono uppercase tracking-wider">
@@ -86,15 +79,14 @@ const Sidebar: React.FC = () => {
             <Zap size={11} className="text-accent-yellow" />
           </div>
           <p className="font-mono text-sm font-bold text-primary">
-            {stats?.activeAgents ?? '—'}
+            {stats ? stats.activeAgents : '—'}
             <span className="text-2xs text-text-secondary font-normal ml-1">
-              / {stats?.totalAgents ?? '—'}
+              / {stats ? stats.totalAgents : '—'}
             </span>
           </p>
         </div>
       </nav>
 
-      {/* ── Simulation Status Footer ── */}
       <div className="p-3 border-t border-default">
         <div className={cn(
           'flex items-center justify-between px-3 py-2.5 rounded-lg border text-xs font-mono',
@@ -107,12 +99,9 @@ const Sidebar: React.FC = () => {
             {isRunning ? 'SIM RUNNING' : 'SIM PAUSED'}
           </span>
           {isRunning && (
-            <span className="text-2xs opacity-60">
-              #{tickCount}
-            </span>
+            <span className="text-2xs opacity-60">#{tickCount}</span>
           )}
         </div>
-
         <p className="text-2xs text-text-muted text-center mt-2 font-mono">
           MotiP Economy v1.0
         </p>
