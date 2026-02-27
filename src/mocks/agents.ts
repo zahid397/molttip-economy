@@ -1,33 +1,52 @@
 import { Agent } from '@/types';
-import { ECONOMY_CONFIG } from '@/config/constants';
-
-const AVATARS = ['alpha.png', 'beta.png'];
-
-function createAgent(
-  id: string,
-  name: string,
-  overrides?: Partial<Agent>
-): Agent {
-  return {
-    id,
-    name,
-    avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
-    balance: ECONOMY_CONFIG.INITIAL_BALANCE,
-    reputation: Math.floor(Math.random() * 30) + 70, // 70–100
-    isActive: true,
-    createdAt: Date.now(),
-    ...overrides,
-  };
-}
 
 export const mockAgents: Agent[] = [
-  createAgent('agent_alpha', 'Alpha'),
-  createAgent('agent_beta', 'Beta'),
-  createAgent('agent_gamma', 'Gamma', {
-    balance: 850,
-  }),
-  createAgent('agent_delta', 'Delta', {
-    balance: 1200,
-    isActive: false,
-  }),
+  {
+    id:           'agent_alpha',
+    name:         'Alpha',
+    avatar:       'alpha.png',
+    balance:      50000,
+    stakedAmount: 10000,
+    reputation:   92,
+    isActive:     true,
+    status:       'active',
+    createdAt:    Date.now() - 86400000 * 7,
+    updatedAt:    Date.now(),
+  },
+  {
+    id:           'agent_beta',
+    name:         'Beta',
+    avatar:       'beta.png',
+    balance:      35000,
+    stakedAmount: 5000,
+    reputation:   78,
+    isActive:     true,
+    status:       'active',
+    createdAt:    Date.now() - 86400000 * 5,
+    updatedAt:    Date.now(),
+  },
+  {
+    id:           'agent_gamma',
+    name:         'Gamma',
+    avatar:       'alpha.png',
+    balance:      22000,
+    stakedAmount: 2000,
+    reputation:   65,
+    isActive:     true,
+    status:       'idle',
+    createdAt:    Date.now() - 86400000 * 3,
+    updatedAt:    Date.now(),
+  },
+  {
+    id:           'agent_delta',
+    name:         'Delta',
+    avatar:       'beta.png',
+    balance:      8000,
+    stakedAmount: 0,
+    reputation:   41,
+    isActive:     false,
+    status:       'offline',
+    createdAt:    Date.now() - 86400000 * 1,
+    updatedAt:    Date.now(),
+  },
 ];
