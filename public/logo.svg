@@ -1,0 +1,36 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="pearlGradient" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#e0f2fe" />
+      <stop offset="70%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0ea5e9" />
+    </radialGradient>
+
+    <radialGradient id="shine" cx="30%" cy="25%" r="30%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Outer Glow -->
+  <circle cx="100" cy="100" r="75" fill="#0ea5e9" opacity="0.2" filter="url(#glow)" />
+
+  <!-- Main Pearl -->
+  <circle cx="100" cy="100" r="65" fill="url(#pearlGradient)" />
+
+  <!-- Shine highlight -->
+  <circle cx="75" cy="70" r="35" fill="url(#shine)" />
+
+  <!-- Inner subtle ring -->
+  <circle cx="100" cy="100" r="50" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2"/>
+
+</svg>
