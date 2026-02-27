@@ -1,60 +1,69 @@
 import { create } from 'zustand';
-import { SIMULATION_CONFIG } from '@/config/constants';
-import { useTransactionStore } from './transactionStore';
-import { useEconomyStore } from './economyStore';
+import { useWalletStore }      from '@/stores/walletStore';
+import { useTransactionStore } from '@/stores/transactionStore';
+import { useEconomyStore }     from '@/stores/economyStore';
+import { SIMULATION_TICK_MS, MAX_TRANSFER_PERCENT } from '@/config/constants';
 
 interface SimulationState {
-  isRunning: boolean;
-  intervalId: number | null;
+  isRunning:       boolean;
+  tickCount:       number;
+  intervalId:      ReturnType<typeof setInterval> | null;
   startSimulation: () => void;
-  stopSimulation: () => void;
-  triggerRandomPayment: () => Promise<void>;
+  stopSimulation:  () => void;
 }
 
 export const useSimulationStore = create<SimulationState>((set, get) => ({
-  isRunning: false,
+  isRunning:  false,
+  tickCount:  0,
   intervalId: null,
 
   startSimulation: () => {
     if (get().isRunning) return;
 
-    const id = window.setInterval(() => {
-      // fire but don't stack
-      get().triggerRandomPayment();
-    }, SIMULATION_CONFIG.INTERVAL_MS);
+    const intervalId = setInterval(async () => {
+      const agents = useWalletStore.getState().agents.filter(a => a.isActive);
+      if (agents.length < 2) return;
 
-    set({ isRunning: true, intervalId: id });
+      const fromIdx = Math.floor(Math.random() * agents.length);
+      let   toIdx   = Math.floor(Math.random() * agents.length);
+      while (toIdx === fromIdx) {
+        toIdx = Math.floor(Math.random() * agents.length);
+      }
+
+      const from = agents[fromIdx];
+      const to   = agents[toIdx];
+
+      if (!from || !to) return;
+
+      const available = from.balance - from.stakedAmount;
+      if (available <= 0) return;
+
+      const maxAmt = Math.floor(available * (MAX_TRANSFER_PERCENT / 100));
+      if (maxAmt < 1) return;
+
+      const amount = Math.max(1, Math.floor(Math.random() * maxAmt));
+
+      try {
+        await useTransactionStore.getState().recordTransaction({
+          fromAgentId: from.id,
+          toAgentId:   to.id,
+          amount,
+          type: 'trade',
+        });
+        useEconomyStore.getState().updateStats();
+      } catch {
+        // swallow simulation errors
+      }
+
+      set(s => ({ tickCount: s.tickCount + 1 }));
+    }, SIMULATION_TICK_MS);
+
+    set({ isRunning: true, intervalId });
   },
 
   stopSimulation: () => {
-    const id = get().intervalId;
-    if (id) clearInterval(id);
-
+    const { intervalId } = get();
+    if (intervalId) clearInterval(intervalId);
     set({ isRunning: false, intervalId: null });
-  },
-
-  triggerRandomPayment: async () => {
-    const agents = useEconomyStore
-      .getState()
-      .agents.filter((a) => a.isActive);
-
-    if (agents.length < 2) return;
-
-    const from = agents[Math.floor(Math.random() * agents.length)];
-    let to = agents[Math.floor(Math.random() * agents.length)];
-
-    while (to.id === from.id) {
-      to = agents[Math.floor(Math.random() * agents.length)];
-    }
-
-    const maxAmount = Math.min(100, from.balance * 0.1);
-    if (maxAmount < 1) return;
-
-    const amount = Math.floor(Math.random() * maxAmount) + 1;
-
-    // call transaction store
-    await useTransactionStore
-      .getState()
-      .sendPayment(from.id, to.id, amount);
   },
 }));
