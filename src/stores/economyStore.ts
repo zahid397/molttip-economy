@@ -1,30 +1,40 @@
 import { create } from 'zustand';
 import { mockAgents } from '@/mocks/agents';
+import { Agent } from '@/types';
 
 interface EconomyState {
-  totalSupply: number;
-  activeAgents: number;
-  averageReputation: number;
-  updateStats: () => void;
+  agents: Agent[];
+
+  getTotalSupply: () => number;
+  getActiveAgents: () => number;
+  getAverageReputation: () => number;
+
+  updateAgentBalance: (id: string, newBalance: number) => void;
 }
 
-export const useEconomyStore = create<EconomyState>((set) => ({
-  totalSupply: mockAgents.reduce((sum, a) => sum + a.balance, 0),
-  activeAgents: mockAgents.filter(a => a.isActive).length,
-  averageReputation: Math.round(
-    mockAgents.reduce((sum, a) => sum + a.reputation, 0) / mockAgents.length
-  ),
+export const useEconomyStore = create<EconomyState>((set, get) => ({
+  agents: mockAgents,
 
-  updateStats: () => {
-    // This would normally fetch from API, but we'll recompute from current agents
-    const agents = useWalletStore.getState().agents;
-    if (agents.length === 0) return;
-    set({
-      totalSupply: agents.reduce((sum, a) => sum + a.balance, 0),
-      activeAgents: agents.filter(a => a.isActive).length,
-      averageReputation: Math.round(
-        agents.reduce((sum, a) => sum + a.reputation, 0) / agents.length
-      ),
-    });
+  getTotalSupply: () =>
+    get().agents.reduce((sum, a) => sum + a.balance, 0),
+
+  getActiveAgents: () =>
+    get().agents.filter((a) => a.isActive).length,
+
+  getAverageReputation: () => {
+    const agents = get().agents;
+    if (!agents.length) return 0;
+
+    return Math.round(
+      agents.reduce((sum, a) => sum + a.reputation, 0) /
+        agents.length
+    );
   },
+
+  updateAgentBalance: (id, newBalance) =>
+    set((state) => ({
+      agents: state.agents.map((a) =>
+        a.id === id ? { ...a, balance: newBalance } : a
+      ),
+    })),
 }));
