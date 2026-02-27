@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar }      from '@/components/layout/Navbar';
 import Sidebar         from '@/components/layout/Sidebar';
@@ -65,9 +65,7 @@ function App() {
                 <Route path="*" element={
                   <div className="flex flex-col items-center justify-center
                     min-h-[60vh] text-center gap-4">
-                    <p className="font-display font-bold text-5xl text-glow-cyan">
-                      404
-                    </p>
+                    <p className="font-display font-bold text-5xl text-glow-cyan">404</p>
                     <p className="font-mono text-text-secondary text-sm">
                       Page not found in the MotiP network.
                     </p>
