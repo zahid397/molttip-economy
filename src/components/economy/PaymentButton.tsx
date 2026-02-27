@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Send, X, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
 import { useTransactionStore } from '@/stores/transactionStore';
-import { useWalletStore } from '@/stores/walletStore';
-import { cn, formatNumber } from '@/lib/utils';
+import { useWalletStore }      from '@/stores/walletStore';
+import { cn, formatNumber }    from '@/lib/utils';
 
 interface PaymentButtonProps {
   fromAgentId: string;
-  toAgentId?: string;
-  className?: string;
+  toAgentId?:  string;
+  className?:  string;
 }
 
 export const PaymentButton: React.FC<PaymentButtonProps> = ({
@@ -19,22 +19,22 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   const [amount,     setAmount]     = useState('');
   const [selectedTo, setSelectedTo] = useState(toAgentId ?? '');
   const [error,      setError]      = useState('');
+  const [isPending,  setIsPending]  = useState(false);
 
-  const { recordTransaction }        = useTransactionStore();
-  const { agents, updateAgentBalance } = useWalletStore();
+  const { recordTransaction } = useTransactionStore();
+  const { agents }            = useWalletStore();
 
-  const fromAgent  = agents.find(a => a.id === fromAgentId);
-  const toAgent    = agents.find(a => a.id === selectedTo);
-  const toOptions  = agents.filter(a => a.id !== fromAgentId && a.isActive);
-  const available  = (fromAgent?.balance ?? 0) - (fromAgent?.stakedAmount ?? 0);
-  const numAmount  = Number(amount);
-  const isLoading  = false; // replace with store loading state if added
+  const fromAgent = agents.find(a => a.id === fromAgentId);
+  const toAgent   = agents.find(a => a.id === selectedTo);
+  const toOptions = agents.filter(a => a.id !== fromAgentId && a.isActive);
+  const available = (fromAgent?.balance ?? 0) - (fromAgent?.stakedAmount ?? 0);
+  const numAmount = Number(amount);
 
   const validate = (): string => {
-    if (!selectedTo)            return 'Select a recipient agent.';
-    if (!amount)                return 'Enter an amount.';
-    if (isNaN(numAmount) || numAmount <= 0) return 'Amount must be a positive number.';
-    if (numAmount > available)  return `Insufficient balance. Available: ${formatNumber(available)} MOTIP`;
+    if (!selectedTo)                             return 'Select a recipient agent.';
+    if (!amount)                                 return 'Enter an amount.';
+    if (isNaN(numAmount) || numAmount <= 0)      return 'Amount must be a positive number.';
+    if (numAmount > available)                   return `Insufficient balance. Available: ${formatNumber(available)} MOTIP`;
     return '';
   };
 
@@ -50,17 +50,20 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     const err = validate();
     if (err) { setError(err); return; }
     setError('');
+    setIsPending(true);
 
     try {
       await recordTransaction({
         fromAgentId,
         toAgentId: selectedTo,
-        amount: numAmount,
-        type: 'payment',
+        amount:    numAmount,
+        type:      'payment',
       });
       handleClose();
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -68,7 +71,6 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
 
   return (
     <>
-      {/* ── Trigger ── */}
       <button
         onClick={() => setIsOpen(true)}
         disabled={!fromAgent?.isActive}
@@ -78,12 +80,10 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         Send Payment
       </button>
 
-      {/* ── Modal backdrop ── */}
       {isOpen && (
         <div className="modal-backdrop" onClick={handleClose}>
           <div className="modal" onClick={e => e.stopPropagation()}>
 
-            {/* Header */}
             <div className="modal-header">
               <div className="flex items-center gap-2">
                 <Send size={15} className="text-accent-cyan" />
@@ -91,16 +91,11 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                   Send MOTIP
                 </h3>
               </div>
-              <button
-                onClick={handleClose}
-                className="btn btn-ghost btn-sm p-1.5"
-                aria-label="Close"
-              >
+              <button onClick={handleClose} className="btn btn-ghost btn-sm p-1.5">
                 <X size={15} />
               </button>
             </div>
 
-            {/* Body */}
             <form onSubmit={handleSubmit}>
               <div className="modal-body space-y-5">
 
@@ -124,7 +119,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                   </div>
                 </div>
 
-                {/* To — select or fixed */}
+                {/* To */}
                 {toAgentId ? (
                   <div className="flex items-center justify-between
                     px-3 py-2.5 rounded-lg bg-bg-elevated border border-default">
@@ -147,10 +142,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                         value={selectedTo}
                         onChange={e => { setSelectedTo(e.target.value); setError(''); }}
                         required
-                        className={cn(
-                          'appearance-none pr-9',
-                          !selectedTo && 'text-text-muted'
-                        )}
+                        className={cn('appearance-none pr-9', !selectedTo && 'text-text-muted')}
                       >
                         <option value="">Select recipient…</option>
                         {toOptions.map(agent => (
@@ -159,11 +151,8 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                           </option>
                         ))}
                       </select>
-                      <ChevronDown
-                        size={14}
-                        className="absolute right-3 top-1/2 -translate-y-1/2
-                          text-text-secondary pointer-events-none"
-                      />
+                      <ChevronDown size={14} className="absolute right-3 top-1/2
+                        -translate-y-1/2 text-text-secondary pointer-events-none" />
                     </div>
                   </div>
                 )}
@@ -184,16 +173,12 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                     className="font-mono text-lg font-bold"
                     required
                   />
-
-                  {/* Quick % buttons */}
                   <div className="flex items-center gap-2 mt-2">
                     {[25, 50, 75, 100].map(p => (
                       <button
                         key={p}
                         type="button"
-                        onClick={() => setAmount(
-                          String(Math.floor(available * p / 100))
-                        )}
+                        onClick={() => setAmount(String(Math.floor(available * p / 100)))}
                         className="btn btn-ghost btn-sm text-2xs font-mono px-2 py-1
                           border border-default hover:border-accent-cyan"
                       >
@@ -203,15 +188,11 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                   </div>
                 </div>
 
-                {/* Amount bar */}
                 {numAmount > 0 && (
                   <div>
                     <div className="progress-track">
                       <div
-                        className={cn(
-                          'progress-fill transition-all duration-300',
-                          pct > 100 && 'bg-accent-red'
-                        )}
+                        className={cn('progress-fill', pct > 100 && 'bg-accent-red')}
                         style={{ width: `${Math.min(pct, 100)}%` }}
                       />
                     </div>
@@ -221,7 +202,6 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                   </div>
                 )}
 
-                {/* Error */}
                 {error && (
                   <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg
                     bg-accent-red/5 border border-accent-red/20 text-accent-red text-xs font-mono">
@@ -231,21 +211,12 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                 )}
               </div>
 
-              {/* Footer */}
               <div className="modal-footer">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="btn btn-secondary"
-                >
+                <button type="button" onClick={handleClose} className="btn btn-secondary">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="btn btn-primary gap-2"
-                >
-                  {isLoading
+                <button type="submit" disabled={isPending} className="btn btn-primary gap-2">
+                  {isPending
                     ? <><Loader2 size={13} className="animate-spin" /> Sending…</>
                     : <><Send size={13} /> Send {amount ? formatNumber(numAmount) : ''} MOTIP</>
                   }
