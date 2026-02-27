@@ -8,19 +8,29 @@ interface ToastProps {
   onClose: () => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration = 3000, onClose }) => {
-  const [visible, setVisible] = useState(true);
+export const Toast: React.FC<ToastProps> = ({
+  message,
+  type = 'info',
+  duration = 3000,
+  onClose,
+}) => {
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Enter animation
+    const enterTimer = setTimeout(() => setVisible(true), 50);
+
+    // Exit timer
+    const exitTimer = setTimeout(() => {
       setVisible(false);
-      onClose();
+      setTimeout(onClose, 300); // wait for animation
     }, duration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(enterTimer);
+      clearTimeout(exitTimer);
+    };
   }, [duration, onClose]);
-
-  if (!visible) return null;
 
   const bgColor = {
     success: 'bg-green-500',
@@ -29,10 +39,14 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration =
   }[type];
 
   return (
-    <div className={cn('fixed bottom-4 right-4 text-white px-4 py-2 rounded shadow-lg', bgColor)}>
+    <div
+      className={cn(
+        'fixed bottom-6 right-6 z-50 px-4 py-2 rounded-xl shadow-lg text-white transition-all duration-300',
+        bgColor,
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+      )}
+    >
       {message}
     </div>
   );
 };
-
-// Simple toast context/hook can be added later; for now we'll manage locally in pages.
