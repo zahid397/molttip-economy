@@ -2,16 +2,21 @@ import { useEffect } from 'react';
 import { useSimulationStore } from '@/stores/simulationStore';
 
 export function useSimulation(autoStart = true) {
-  const { startSimulation, stopSimulation, isRunning } = useSimulationStore();
+  const {
+    startSimulation,
+    stopSimulation,
+    isRunning,
+  } = useSimulationStore();
 
   useEffect(() => {
-    if (autoStart) {
+    if (autoStart && !isRunning) {
       startSimulation();
     }
-    return () => {
-      stopSimulation();
-    };
-  }, [autoStart, startSimulation, stopSimulation]);
+  }, [autoStart, isRunning, startSimulation]);
 
-  return { isRunning };
+  return {
+    isRunning,
+    start: startSimulation,
+    stop: stopSimulation,
+  };
 }
