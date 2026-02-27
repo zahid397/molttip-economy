@@ -1,55 +1,73 @@
 import { create } from 'zustand';
-import { api } from '@/services/api';
-import { Transaction } from '@/types';
 
-interface TransactionState {
-  transactions: Transaction[];
-  isLoading: boolean;
-  error: string | null;
-  fetchTransactions: () => Promise<void>;
-  sendPayment: (fromAgentId: string, toAgentId: string, amount: number) => Promise<void>;
+export interface Transaction {
+  id: string;
+  fromAgentId: string;
+  toAgentId: string;
+  amount: number;
+  type: 'payment' | 'reward' | 'stake' | 'unstake';
+  status: 'pending' | 'confirmed' | 'failed';
+  timestamp: number;
 }
 
-export const useTransactionStore = create<TransactionState>((set, get) => ({
+const CONFIRMATION_DELAY = 300;
+const MAX_HISTORY = 500;
+
+interface TransactionStore {
+  transactions: Transaction[];
+  recordTransaction: (
+    tx: Omit<Transaction, 'id' | 'status' | 'timestamp'>
+  ) => Promise<Transaction>;
+  getByAgent: (agentId: string) => Transaction[];
+  clearHistory: () => void;
+}
+
+export const useTransactionStore = create<TransactionStore>((set, get) => ({
   transactions: [],
-  isLoading: false,
-  error: null,
 
-  fetchTransactions: async () => {
-    set({ isLoading: true, error: null });
+  recordTransaction: async (tx) => {
+    const newTx: Transaction = {
+      ...tx,
+      id: crypto.randomUUID(),
+      status: 'pending',
+      timestamp: Date.now(),
+    };
+
+    // Optimistic insert (bounded history)
+    set(state => ({
+      transactions: [newTx, ...state.transactions].slice(0, MAX_HISTORY),
+    }));
+
     try {
-      const transactions = await api.fetchTransactions();
-      set({ transactions, isLoading: false });
-    } catch (err) {
-      set({ error: (err as Error).message, isLoading: false });
-    }
-  },
+      await new Promise(res => setTimeout(res, CONFIRMATION_DELAY));
 
-  sendPayment: async (fromAgentId, toAgentId, amount) => {
-    try {
-      // Optimistic update? For mock, we just create tx and update balances.
-      const newTx = await api.createTransaction({
-        fromAgentId,
-        toAgentId,
-        amount,
-        type: 'payment',
-      });
-
-      // Update local transactions list
       set(state => ({
-        transactions: [newTx, ...state.transactions]
+        transactions: state.transactions.map(t =>
+          t.id === newTx.id
+            ? { ...t, status: 'confirmed' }
+            : t
+        ),
       }));
 
-      // Also update agent balances in wallet store (optional, but good)
-      const { agents } = useWalletStore.getState();
-      const fromAgent = agents.find(a => a.id === fromAgentId);
-      const toAgent = agents.find(a => a.id === toAgentId);
-      if (fromAgent && toAgent) {
-        await useWalletStore.getState().updateAgentBalance(fromAgentId, fromAgent.balance - amount);
-        await useWalletStore.getState().updateAgentBalance(toAgentId, toAgent.balance + amount);
-      }
+      return { ...newTx, status: 'confirmed' };
     } catch (err) {
-      set({ error: (err as Error).message });
+      set(state => ({
+        transactions: state.transactions.map(t =>
+          t.id === newTx.id
+            ? { ...t, status: 'failed' }
+            : t
+        ),
+      }));
+      throw err;
     }
   },
+
+  getByAgent: (agentId) =>
+    get().transactions.filter(
+      t =>
+        t.fromAgentId === agentId ||
+        t.toAgentId === agentId
+    ),
+
+  clearHistory: () => set({ transactions: [] }),
 }));
