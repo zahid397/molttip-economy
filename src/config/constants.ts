@@ -1,32 +1,7 @@
-// ===============================
-// App
-// ===============================
-export const APP_CONFIG = {
-  NAME: 'MolTip Economy',
-  TOKEN_NAME: 'MOTIP',
-};
-
-// ===============================
-// Wallet / Economy
-// ===============================
-export const ECONOMY_CONFIG = {
-  INITIAL_BALANCE: 1000,
-  MIN_TIP: 1,
-  MAX_TIP: 1000,
-};
-
-// ===============================
-// Simulation
-// ===============================
-export const SIMULATION_CONFIG = {
-  INTERVAL_MS: 5000, // 5 seconds
-  PRICE_VOLATILITY: 0.02,
-};
-
-// ===============================
-// API
-// ===============================
-export const API_CONFIG = {
-  DELAY_MS: 300, // simulate network latency
-  FAILURE_RATE: 0.03, // 3% fake failure
-};
+export const API_DELAY_MS          = 300;
+export const SIMULATION_TICK_MS    = 2000;
+export const MAX_TRANSFER_PERCENT  = 20;
+export const INITIAL_TOKEN_SUPPLY  = 1_000_000;
+export const REPUTATION_DECAY_RATE = 0.01;
+export const APP_NAME              = 'MotiP Economy';
+export const APP_VERSION           = '1.0.0';
