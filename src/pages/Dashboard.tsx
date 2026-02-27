@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Activity, TrendingUp, Zap, RefreshCw } from 'lucide-react';
 import { MotiPStats }          from '@/components/economy/MotiPStats';
