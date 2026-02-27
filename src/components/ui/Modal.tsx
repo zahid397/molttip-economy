@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ModalProps {
@@ -9,39 +9,63 @@ interface ModalProps {
   className?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  className,
+}) => {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('keydown', handleEsc);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={onClose}></div>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
 
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-        <div
-          className={cn(
-            'inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full',
-            className
-          )}
-        >
-          {title && (
-            <div className="bg-gray-50 px-4 py-3 border-b">
-              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-            </div>
-          )}
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6">{children}</div>
-          <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm"
-              onClick={onClose}
-            >
-              Close
-            </button>
+      {/* Modal Panel */}
+      <div
+        className={cn(
+          'relative w-full max-w-lg rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 shadow-2xl p-6 transition-all duration-300 scale-100',
+          className
+        )}
+      >
+        {title && (
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-slate-100 tracking-tight">
+              {title}
+            </h3>
           </div>
+        )}
+
+        <div className="text-slate-300">{children}</div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 transition-all duration-200"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
