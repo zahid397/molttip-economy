@@ -1,40 +1,43 @@
 import { create } from 'zustand';
-import { mockAgents } from '@/mocks/agents';
-import { Agent } from '@/types';
+import { EconomyStats } from '@/types';
+import { useWalletStore }      from '@/stores/walletStore';
+import { useTransactionStore } from '@/stores/transactionStore';
 
 interface EconomyState {
-  agents: Agent[];
-
-  getTotalSupply: () => number;
-  getActiveAgents: () => number;
-  getAverageReputation: () => number;
-
-  updateAgentBalance: (id: string, newBalance: number) => void;
+  stats:       EconomyStats | null;
+  updateStats: () => void;
 }
 
-export const useEconomyStore = create<EconomyState>((set, get) => ({
-  agents: mockAgents,
+export const useEconomyStore = create<EconomyState>((set) => ({
+  stats: null,
 
-  getTotalSupply: () =>
-    get().agents.reduce((sum, a) => sum + a.balance, 0),
+  updateStats: () => {
+    const agents       = useWalletStore.getState().agents;
+    const transactions = useTransactionStore.getState().transactions;
 
-  getActiveAgents: () =>
-    get().agents.filter((a) => a.isActive).length,
+    const totalStaked   = agents.reduce((s, a) => s + a.stakedAmount, 0);
+    const totalBalance  = agents.reduce((s, a) => s + a.balance, 0);
+    const activeAgents  = agents.filter(a => a.isActive).length;
+    const avgRep        = agents.length
+      ? agents.reduce((s, a) => s + a.reputation, 0) / agents.length
+      : 0;
 
-  getAverageReputation: () => {
-    const agents = get().agents;
-    if (!agents.length) return 0;
+    const oneDayAgo     = Date.now() - 86_400_000;
+    const volumeLast24h = transactions
+      .filter(t => t.timestamp >= oneDayAgo && t.status === 'confirmed')
+      .reduce((s, t) => s + t.amount, 0);
 
-    return Math.round(
-      agents.reduce((sum, a) => sum + a.reputation, 0) /
-        agents.length
-    );
+    set({
+      stats: {
+        totalSupply:       1_000_000,
+        circulatingSupply: totalBalance,
+        totalStaked,
+        totalTransactions: transactions.length,
+        activeAgents,
+        totalAgents:       agents.length,
+        volumeLast24h,
+        avgReputation:     Math.round(avgRep),
+      },
+    });
   },
-
-  updateAgentBalance: (id, newBalance) =>
-    set((state) => ({
-      agents: state.agents.map((a) =>
-        a.id === id ? { ...a, balance: newBalance } : a
-      ),
-    })),
 }));
