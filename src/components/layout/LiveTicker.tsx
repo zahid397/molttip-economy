@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, TrendingUp, Activity } from 'lucide-react';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useWalletStore }      from '@/stores/walletStore';
