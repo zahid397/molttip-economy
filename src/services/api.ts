@@ -1,76 +1,31 @@
-import { Agent, Transaction, LeaderboardEntry } from '@/types';
-import { mockAgents } from '@/mocks/agents';
+import { mockAgents }       from '@/mocks/agents';
 import { mockTransactions } from '@/mocks/transactions';
-import { mockLeaderboard } from '@/mocks/leaderboard';
-import { API_DELAY_MS } from '@/config/constants';
+import { mockLeaderboard }  from '@/mocks/leaderboard';
+import { API_DELAY_MS }     from '@/config/constants';
+import { Agent, Transaction, LeaderboardEntry } from '@/types';
 
-// Simulate network delay
-const delay = <T>(data: T): Promise<T> =>
-  new Promise((resolve) => setTimeout(() => resolve(data), API_DELAY_MS));
-
-// Optional: simulate random API failure (realistic feeling)
-const maybeFail = () => {
-  if (Math.random() < 0.03) {
-    throw new Error('Network error. Please try again.');
-  }
-};
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export const api = {
-  // ----------------------
-  // Agents
-  // ----------------------
-
   async fetchAgents(): Promise<Agent[]> {
-    maybeFail();
-    return delay(structuredClone(mockAgents));
+    await delay(API_DELAY_MS);
+    return [...mockAgents];
   },
 
-  async updateAgentBalance(
-    agentId: string,
-    newBalance: number
-  ): Promise<Agent> {
-    maybeFail();
-
-    const agent = mockAgents.find((a) => a.id === agentId);
-    if (!agent) throw new Error('Agent not found');
-
-    const updatedAgent: Agent = {
-      ...agent,
-      balance: newBalance,
-    };
-
-    return delay(updatedAgent);
+  async updateAgentBalance(agentId: string, balance: number): Promise<Agent> {
+    await delay(API_DELAY_MS);
+    const agent = mockAgents.find(a => a.id === agentId);
+    if (!agent) throw new Error(`Agent ${agentId} not found`);
+    return { ...agent, balance, updatedAt: Date.now() };
   },
-
-  // ----------------------
-  // Transactions
-  // ----------------------
 
   async fetchTransactions(): Promise<Transaction[]> {
-    maybeFail();
-    return delay(structuredClone(mockTransactions));
+    await delay(API_DELAY_MS);
+    return [...mockTransactions];
   },
-
-  async createTransaction(
-    tx: Omit<Transaction, 'id' | 'timestamp'>
-  ): Promise<Transaction> {
-    maybeFail();
-
-    const newTx: Transaction = {
-      ...tx,
-      id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      timestamp: Date.now(),
-    };
-
-    return delay(newTx);
-  },
-
-  // ----------------------
-  // Leaderboard
-  // ----------------------
 
   async fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-    maybeFail();
-    return delay(structuredClone(mockLeaderboard));
+    await delay(API_DELAY_MS);
+    return [...mockLeaderboard];
   },
 };
