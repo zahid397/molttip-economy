@@ -1,47 +1,46 @@
-React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, Activity, TrendingUp,
   Zap, RefreshCw,
 } from 'lucide-react';
-import { MotiPStats }    from '@/components/economy/MotiPStats';
-import { TokenBalance }  from '@/components/economy/TokenBalance';
-import { AgentCard }     from '@/components/economy/AgentCard';
-import { LaunchButton }  from '@/components/economy/LaunchButton';
-import { useWalletStore }  from '@/stores/walletStore';
-import { useEconomyStore } from '@/stores/economyStore';
-import { useSimulation }   from '@/hooks/useSimulation';
+import { MotiPStats }          from '@/components/economy/MotiPStats';
+import { TokenBalance }        from '@/components/economy/TokenBalance';
+import { AgentCard }           from '@/components/economy/AgentCard';
+import { LaunchButton }        from '@/components/economy/LaunchButton';
+import { useWalletStore }      from '@/stores/walletStore';
+import { useEconomyStore }     from '@/stores/economyStore';
+import { useSimulation }       from '@/hooks/useSimulation';
 import { useTransactionStore } from '@/stores/transactionStore';
-import { formatNumber }  from '@/lib/utils';
+import { formatNumber }        from '@/lib/utils';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  const { agents, fetchAgents, isLoading }       = useWalletStore();
-  const { stats, updateStats }                   = useEconomyStore();
-  const { transactions }                         = useTransactionStore();
+  const { agents, fetchAgents, isLoading } = useWalletStore();
+  const { stats, updateStats }             = useEconomyStore();
+  const { transactions }                   = useTransactionStore();
 
-  useSimulation(false); // manual start via LaunchButton
+  useSimulation(false);
 
-  useEffect(() => { fetchAgents(); }, [fetchAgents]);
+  useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
 
   useEffect(() => {
     if (agents.length) updateStats();
   }, [agents, updateStats]);
 
-  const topAgents  = [...agents]
-    .sort((a, b) => b.balance - a.balance)
-    .slice(0, 3);
-
-  const primaryAgent   = agents[0] ?? null;
-  const recentTxs      = transactions.slice(0, 5);
-  const totalVolume    = transactions.reduce((s, t) => s + t.amount, 0);
+  const topAgents    = [...agents].sort((a, b) => b.balance - a.balance).slice(0, 3);
+  const primaryAgent = agents[0] ?? null;
+  const recentTxs    = transactions.slice(0, 5);
+  const totalVolume  = transactions.reduce((s, t) => s + t.amount, 0);
 
   return (
     <div className="space-y-6 page-enter">
 
-      {/* ── Page header ── */}
-      <div className="flex items-start justify-between">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display font-bold text-3xl text-primary">
             Dashboard
@@ -70,7 +69,7 @@ export const Dashboard: React.FC = () => {
       {/* ── Main grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Wallet panel */}
+        {/* ── Left: Wallet + Recent Transactions ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold text-lg text-primary flex items-center gap-2">
@@ -78,7 +77,9 @@ export const Dashboard: React.FC = () => {
               Primary Wallet
             </h2>
             {primaryAgent && (
-              <span className="badge badge-cyan text-2xs">{primaryAgent.name}</span>
+              <span className="badge badge-cyan text-2xs">
+                {primaryAgent.name}
+              </span>
             )}
           </div>
 
@@ -98,7 +99,7 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Recent transactions mini list */}
+          {/* Recent transactions */}
           <div className="card">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-display font-bold text-sm text-primary flex items-center gap-2">
@@ -126,7 +127,7 @@ export const Dashboard: React.FC = () => {
                         px-3 py-2 rounded-md bg-bg-elevated border border-default
                         text-xs font-mono"
                     >
-                      <div className="flex items-center gap-2 text-text-secondary">
+                      <div className="flex items-center gap-2 text-text-secondary min-w-0">
                         <span className="text-primary truncate max-w-[80px]">
                           {from?.name ?? tx.fromAgentId}
                         </span>
@@ -135,15 +136,16 @@ export const Dashboard: React.FC = () => {
                           {to?.name ?? tx.toAgentId}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
                         <span className="text-accent-cyan font-bold">
                           {formatNumber(tx.amount)}
                         </span>
-                        <span className={`badge text-2xs ${
-                          tx.status === 'confirmed' ? 'badge-green' :
+                        <span className={[
+                          'badge text-2xs',
+                          tx.status === 'confirmed' ? 'badge-green'  :
                           tx.status === 'pending'   ? 'badge-yellow' :
-                                                      'badge-red'
-                        }`}>
+                                                      'badge-red',
+                        ].join(' ')}>
                           {tx.status}
                         </span>
                       </div>
@@ -162,7 +164,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Top agents panel */}
+        {/* ── Right: Top Agents ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold text-lg text-primary flex items-center gap-2">
