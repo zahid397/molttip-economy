@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, X } from 'lucide-react';
+import { X, Zap } from 'lucide-react';
 
 export const DemoBanner: React.FC = () => {
   const [dismissed, setDismissed] = useState(false);
@@ -7,40 +7,22 @@ export const DemoBanner: React.FC = () => {
   if (dismissed) return null;
 
   return (
-    <div className="relative z-50 flex items-center justify-center gap-3
-      px-4 py-2 border-b border-accent-yellow/20
-      bg-accent-yellow/5 backdrop-blur-sm">
-
-      {/* Scrolling ticker text */}
-      <div className="flex items-center gap-2 overflow-hidden">
-        <span className="flex items-center gap-1.5 shrink-0">
-          <Zap size={12} className="text-accent-yellow animate-pulse" />
-          <span className="text-xs font-mono font-bold text-accent-yellow uppercase tracking-widest">
-            Demo Mode
-          </span>
-          <span className="text-xs text-border-bright font-mono mx-1">·</span>
-        </span>
-
-        <p className="text-xs font-mono text-text-secondary whitespace-nowrap">
-          All data is simulated and stored only in your browser.
-          No real tokens. No real transactions.
-        </p>
-
-        {/* Repeated for seamless ticker feel on small screens */}
-        <span className="text-xs text-border-bright font-mono mx-3 shrink-0">·</span>
-        <p className="text-xs font-mono text-text-secondary whitespace-nowrap shrink-0 hidden sm:block">
-          Built for LabLab.ai Hackathon
+    <div className="fixed top-0 left-0 right-0 z-50 h-8 flex items-center justify-between
+      px-4 bg-accent-yellow/5 border-b border-accent-yellow/20"
+      style={{ borderBottom: '1px solid rgba(255,217,61,0.2)' }}
+    >
+      <div className="flex items-center gap-2 min-w-0">
+        <Zap size={10} className="text-accent-yellow shrink-0 animate-pulse" />
+        <p className="font-mono text-2xs text-accent-yellow truncate">
+          DEMO MODE &nbsp;·&nbsp; All data simulated and stored only in your browser.
+          No real tokens. No real transactions. &nbsp;·&nbsp; Built for LabLab.ai Hackathon
         </p>
       </div>
-
-      {/* Dismiss */}
       <button
         onClick={() => setDismissed(true)}
-        className="absolute right-3 top-1/2 -translate-y-1/2
-          text-text-muted hover:text-text-primary transition-colors"
-        aria-label="Dismiss banner"
+        className="shrink-0 ml-3 text-accent-yellow/60 hover:text-accent-yellow transition-colors"
       >
-        <X size={13} />
+        <X size={12} />
       </button>
     </div>
   );
