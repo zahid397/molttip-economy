@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { CheckCircle, XCircle, Info } from 'lucide-react';
 
 interface ToastProps {
   message: string;
@@ -17,36 +18,46 @@ export const Toast: React.FC<ToastProps> = ({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Enter animation
-    const enterTimer = setTimeout(() => setVisible(true), 50);
+    const enter = setTimeout(() => setVisible(true), 20);
 
-    // Exit timer
-    const exitTimer = setTimeout(() => {
+    const timer = setTimeout(() => {
       setVisible(false);
-      setTimeout(onClose, 300); // wait for animation
+      setTimeout(onClose, 250);
     }, duration);
 
     return () => {
-      clearTimeout(enterTimer);
-      clearTimeout(exitTimer);
+      clearTimeout(enter);
+      clearTimeout(timer);
     };
   }, [duration, onClose]);
 
-  const bgColor = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-  }[type];
+  const variants = {
+    success:
+      'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400',
+    error:
+      'bg-red-500/15 border border-red-500/30 text-red-400',
+    info:
+      'bg-primary-500/15 border border-primary-500/30 text-primary-400',
+  };
+
+  const icons = {
+    success: <CheckCircle size={18} />,
+    error: <XCircle size={18} />,
+    info: <Info size={18} />,
+  };
 
   return (
     <div
       className={cn(
-        'fixed bottom-6 right-6 z-50 px-4 py-2 rounded-xl shadow-lg text-white transition-all duration-300',
-        bgColor,
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        'fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl backdrop-blur-xl shadow-xl transition-all duration-300 transform',
+        variants[type],
+        visible
+          ? 'opacity-100 translate-y-0 scale-100'
+          : 'opacity-0 translate-y-4 scale-95'
       )}
     >
-      {message}
+      <div className="flex-shrink-0">{icons[type]}</div>
+      <p className="text-sm font-medium">{message}</p>
     </div>
   );
 };
